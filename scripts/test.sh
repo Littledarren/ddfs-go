@@ -12,15 +12,20 @@ testFS() {
     echo 1. 添加块🧱
     export ALL_PROXY="";  curl  -H $HEADER --data-binary @$2 $url $FLAG
 
-    echo 
     echo 2. 获取块🧱
     export ALL_PROXY="";  curl -# $url -o $2.get $FLAG
 
     echo 3. 结果对比，EOF说明正确
     cmp $2 $2.get 
 
+    echo 4. 删除块🧱
+    export ALL_PROXY="";  curl -# -X DELETE $url $FLAG
+
+    echo 5. 获取块🧱
+    export ALL_PROXY="";  curl -# $url -v
+
     # rm $2.get
-    echo "--------------TEST END------------------"
+    echo "\n--------------TEST END------------------"
 }
 
 testFS test test.blk

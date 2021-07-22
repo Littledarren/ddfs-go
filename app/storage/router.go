@@ -2,6 +2,7 @@ package main
 
 import (
 	"ddfs-go/internal/comm/errno"
+	"fmt"
 	"io/ioutil"
 
 	"github.com/gin-gonic/gin"
@@ -17,14 +18,14 @@ func NewRouter() *gin.Engine {
 			return
 		}
 		if err = blkMgr.Set(c.Query("hash"), blk); err != nil {
-			c.String(errno.RetInvalidParam, "内部错误: %w", err)
+			c.String(errno.RetInvalidParam, fmt.Sprintf("内部错误: %+v", err))
 			return
 		}
 		c.String(200, "")
 	})
 	ret.DELETE("/blk", func(c *gin.Context) {
 		if err := blkMgr.Del(c.Query("hash")); err != nil {
-			c.String(errno.RetSetFailed, "内部错误: %w", err)
+			c.String(errno.RetSetFailed, fmt.Sprintf("内部错误: %+v", err))
 			return
 		}
 		c.String(200, "")
@@ -32,7 +33,7 @@ func NewRouter() *gin.Engine {
 	ret.GET("/blk", func(c *gin.Context) {
 		blk, err := blkMgr.Get(c.Query("hash"))
 		if err != nil {
-			c.String(200, "获取失败: %w", err)
+			c.String(200, fmt.Sprintf("内部错误: %+v", err))
 			return
 		}
 		c.Data(200, "blk", blk)
