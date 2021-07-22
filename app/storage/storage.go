@@ -81,6 +81,7 @@ func NewStorageProxy(config *Config) Storage {
 			select {
 			case <-gctx.Done():
 				fileLock.Lock()
+				lfs.TableLock.Lock() // 不释放
 				lfs.SyncToFile(path.Join(config.Root, StorageFile))
 				fileLock.Unlock()
 				done <- struct{}{}
@@ -132,7 +133,7 @@ func (s *localFileStorage) Set(key string, blk []byte) error {
 	postfix := item.Index / int(s.Config.BlkNumPerFile)
 	item.Offset = int64(((item.Index - 1) % int(s.Config.BlkNumPerFile)) * int(s.Config.BlkSize))
 	item.FileName = path.Join(s.Config.Root, genFileName(s.Config.Root, postfix))
-	f, err := os.OpenFile(item.FileName, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0664)
+	f, err := os.OpenFile(item.FileName, os.O_WRONLY|os.O_CREATE, 0664)
 	defer func() {
 		if err != nil {
 			item.RefCount--
@@ -165,7 +166,8 @@ func (s *localFileStorage) Del(key string) error {
 	}
 	item.RefCount--
 	if item.RefCount == 0 {
-
+		s.BitMap.Unset(item.Index)
+		delete(s.Table, key)
 	}
 	return nil
 }
@@ -178,8 +180,8 @@ func (s *localFileStorage) readBlk(bi *BlkItem) ([]byte, error) {
 		return nil, err
 	}
 	buf := make([]byte, s.Config.BlkSize)
-	_, err = fp.ReadAt(buf, bi.Offset)
-	if err != io.EOF {
+	cnt, err := fp.ReadAt(buf, bi.Offset)
+	if cnt != int(s.Config.BlkSize) && err != io.EOF {
 		return nil, errno.ErrBlkBroken
 	}
 	return buf, nil

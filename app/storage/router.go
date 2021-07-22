@@ -5,7 +5,6 @@ import (
 	"io/ioutil"
 
 	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
 )
 
 func NewRouter() *gin.Engine {
@@ -13,9 +12,7 @@ func NewRouter() *gin.Engine {
 
 	ret.POST("/blk", func(c *gin.Context) {
 		blk, err := ioutil.ReadAll(c.Request.Body)
-		logrus.Infof("%+v", blk)
 		if err != nil || len(blk) > int(GetConf().BlkSize) {
-			logrus.Info(len(blk))
 			c.String(errno.RetInvalidParam, "非法参数")
 			return
 		}
@@ -23,26 +20,25 @@ func NewRouter() *gin.Engine {
 			c.String(errno.RetInvalidParam, "内部错误: %w", err)
 			return
 		}
-		c.JSON(200, nil)
+		c.String(200, "")
 	})
 	ret.DELETE("/blk", func(c *gin.Context) {
 		if err := blkMgr.Del(c.Query("hash")); err != nil {
 			c.String(errno.RetSetFailed, "内部错误: %w", err)
 			return
 		}
-		c.JSON(200, nil)
+		c.String(200, "")
 	})
 	ret.GET("/blk", func(c *gin.Context) {
 		blk, err := blkMgr.Get(c.Query("hash"))
 		if err != nil {
-			logrus.Error(err)
-			c.JSON(errno.RetGetFailed, nil)
+			c.String(200, "获取失败: %w", err)
 			return
 		}
 		c.Data(200, "blk", blk)
 	})
 	ret.GET("/", func(c *gin.Context) {
-		c.String(200, "hello world")
+		c.String(200, "blk storage works fine😅")
 	})
 	return ret
 }
