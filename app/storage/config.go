@@ -11,7 +11,7 @@ type Config struct {
 }
 
 var (
-	GlobalConfig *Config = &Config{
+	DefaultConf *Config = &Config{
 		Root:          "data",
 		BlkNumPerFile: 100,
 		FilePrefix:    "blk_",
@@ -24,6 +24,8 @@ func (c *Config) GetPort() string {
 	return fmt.Sprintf(":%d", c.Port)
 }
 
-func GetConf() *Config {
-	return GlobalConfig
+// LoadConf 读取配置
+func (c *Config) LoadConf(path string) error {
+	*c = *DefaultConf
+	return nil
 }

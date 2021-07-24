@@ -18,7 +18,6 @@ import (
 var (
 	// StorageFile 用于存储文件系统的信息
 	StorageFile = "lfs.json"
-	fileLock    sync.Mutex
 )
 
 // Storage  对存储的抽象，能够根据blk hash获取对应的内容
@@ -26,6 +25,7 @@ type Storage interface {
 	Set(key string, blk []byte) error // 保存块到持久化存储
 	Get(key string) ([]byte, error)   // 从持久化存储读取块
 	Del(key string) error             // 删除块
+	OnExit()                          // 退出时执行的函数
 }
 
 type localFileStorage struct {
@@ -33,6 +33,14 @@ type localFileStorage struct {
 	Config    *Config      `json:"-"`
 	BitMap    utils.BitMap `json:"bitmap"`
 	TableLock sync.Mutex   `json:"-"`
+	fileLock  sync.Mutex
+}
+
+func (l *localFileStorage) OnExit() {
+	l.fileLock.Lock()
+	l.TableLock.Lock() // 不释放, 一直持有到进程结束
+	l.SyncToFile(path.Join(l.Config.Root, StorageFile))
+	l.fileLock.Unlock()
 }
 
 // SyncToFile 保存到本地
@@ -51,8 +59,8 @@ func (l *localFileStorage) SyncToFile(path string) error {
 }
 
 func (l *localFileStorage) LoadFromFile(path string) error {
-	fileLock.Lock()
-	defer fileLock.Unlock()
+	l.fileLock.Lock()
+	defer l.fileLock.Unlock()
 	if err := utils.IsFileExist(path); err != nil {
 		// 没有生成相应的文件，说明是第一次生成
 		return l.SyncToFile(path)
@@ -77,22 +85,10 @@ func NewStorageProxy(config *Config) Storage {
 	}
 	// 启动一个协程自动同步文件
 	go func() {
-		for {
-			select {
-			case <-gctx.Done():
-				fileLock.Lock()
-				lfs.TableLock.Lock() // 不释放
-				lfs.SyncToFile(path.Join(config.Root, StorageFile))
-				fileLock.Unlock()
-				done <- struct{}{}
-				return
-			default:
-				time.Sleep(5 * time.Second)
-				fileLock.Lock()
-				lfs.SyncToFile(path.Join(config.Root, StorageFile))
-				fileLock.Unlock()
-			}
-		}
+		time.Sleep(5 * time.Second)
+		lfs.fileLock.Lock()
+		lfs.SyncToFile(path.Join(config.Root, StorageFile))
+		lfs.fileLock.Unlock()
 	}()
 	return lfs
 }

@@ -2,9 +2,9 @@ name: Go
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
 
@@ -12,42 +12,34 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-
     - name: Set up Go
       uses: actions/setup-go@v2
       with:
         go-version: 1.16
-    
     - name: Code Inspector GitHub action
-      # You may pin to the exact commit or the version.
-      # uses: codeinspectorio/github-action@01c818be303e2c4bcec991ca1c51feab753a1e2a
       uses: codeinspectorio/github-action@v1
       with:
         # Token to checkout the repository.
         repo_token: ${{secrets.GITHUB_TOKEN}}
-        # Access key on Code Inspector
+          # Access key on Code Inspector
         code_inspector_access_key: ${{ secrets.CODE_INSPECTOR_ACCESS_KEY }}
-        # Secret key on Code Inspector
+          # Secret key on Code Inspector
         code_inspector_secret_key: ${{ secrets.CODE_INSPECTOR_SECRET_KEY }}
-        # Minimum grade. Valid options are EXCELLENT, GOOD, NEUTRAL, WARNING, CRITICAL. Leave blank to ignore.
-        min_quality_grade: 'WARNING' # default is 
-        # Minimum quality score from 0 (worst) to 100 (best)
+          # Minimum grade. Valid options are EXCELLENT, GOOD, NEUTRAL, WARNING, CRITICAL. Leave blank to ignore.
+        min_quality_grade: 'WARNING' # default is
+          # Minimum quality score from 0 (worst) to 100 (best)
         min_quality_score: '50' # default is 0
-        # Maximum defect rate per line of code (e.g. 0.01 for 1 defect per 100 lines of code). Leave 0 to ignore.
+          # Maximum defect rate per line of code (e.g. 0.01 for 1 defect per 100 lines of code). Leave 0 to ignore.
         max_defects_rate: '0.0001' # default is 0
-        # Maximum number of complex functions rate (e.g. number of complex functions / number of functions). Leave 0 to ignore.
+          # Maximum number of complex functions rate (e.g. number of complex functions / number of functions). Leave 0 to ignore.
         max_complex_functions_rate: '0.0001' # default is 0
-        # Maximum number of long functions rate (e.g. number of long functions / number of functions). Leave 0 to ignore.
+          # Maximum number of long functions rate (e.g. number of long functions / number of functions). Leave 0 to ignore.
         max_long_functions_rate: '0.0001' # default is 0
-        # Project on code inspector. Will use the preferences of this analysis. Leave blank and no preferences are used
-        project_name: 'ddfs-go' # default is 
-        # Timeout before giving up (in case analysis takes too long). Default is 10 minutes
+          # Project on code inspector. Will use the preferences of this analysis. Leave blank and no preferences are used
+        project_name: 'ddfs-go' # default is
+          # Timeout before giving up (in case analysis takes too long). Default is 10 minutes
         max_timeout_sec: '600' # default is 600
-
     - name: Build
-      run: go build -race -v ./...
-
+      run: make build
     - name: Test
-      run: go test -gcflags=all=-l -v -cover ./...
-      
-   
+      run: make test

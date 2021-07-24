@@ -8,12 +8,14 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func NewRouter() *gin.Engine {
+// newRouter 路由函数
+func (s *StorageSeverceImpl) newRouter() *gin.Engine {
 	ret := gin.Default()
-
+	blkMgr := s.blkMgr
+	conf := s.config
 	ret.POST("/blk", func(c *gin.Context) {
 		blk, err := ioutil.ReadAll(c.Request.Body)
-		if err != nil || len(blk) > int(GetConf().BlkSize) {
+		if err != nil || len(blk) > int(conf.BlkSize) {
 			c.String(errno.RetInvalidParam, "非法参数")
 			return
 		}
