@@ -33,14 +33,11 @@ type localFileStorage struct {
 	Config    *Config      `json:"-"`
 	BitMap    utils.BitMap `json:"bitmap"`
 	TableLock sync.Mutex   `json:"-"`
-	fileLock  sync.Mutex
 }
 
 func (l *localFileStorage) OnExit() {
-	l.fileLock.Lock()
 	l.TableLock.Lock() // 不释放, 一直持有到进程结束
 	l.SyncToFile(path.Join(l.Config.Root, StorageFile))
-	l.fileLock.Unlock()
 }
 
 // SyncToFile 保存到本地
@@ -59,8 +56,8 @@ func (l *localFileStorage) SyncToFile(path string) error {
 }
 
 func (l *localFileStorage) LoadFromFile(path string) error {
-	l.fileLock.Lock()
-	defer l.fileLock.Unlock()
+	l.TableLock.Lock()
+	defer l.TableLock.Unlock()
 	if err := utils.IsFileExist(path); err != nil {
 		// 没有生成相应的文件，说明是第一次生成
 		return l.SyncToFile(path)
@@ -85,10 +82,12 @@ func NewStorageProxy(config *Config) Storage {
 	}
 	// 启动一个协程自动同步文件
 	go func() {
-		time.Sleep(5 * time.Second)
-		lfs.fileLock.Lock()
-		lfs.SyncToFile(path.Join(config.Root, StorageFile))
-		lfs.fileLock.Unlock()
+		for {
+			time.Sleep(5 * time.Second)
+			lfs.TableLock.Lock()
+			lfs.SyncToFile(path.Join(config.Root, StorageFile))
+			lfs.TableLock.Unlock()
+		}
 	}()
 	return lfs
 }

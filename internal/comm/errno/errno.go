@@ -16,4 +16,5 @@ var (
 	ErrBlkBroken        = errors.New("blk file broke")      // 文件损坏
 	ErrBlkSizeCheckFail = errors.New("blk size check fail") // 块大小校验失败
 	ErrInvalidParam     = errors.New("invalid params")      // 参数错误
+
 )

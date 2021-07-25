@@ -16,7 +16,7 @@ var (
 		BlkNumPerFile: 100,
 		FilePrefix:    "blk_",
 		BlkSize:       4 * 1024, // 4 KB
-		Port:          8000,
+		Port:          8080,
 	}
 )
 
