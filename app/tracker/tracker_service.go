@@ -28,7 +28,9 @@ func NewTrackerServiceImpl() *TrackerServiceImpl {
 		ServerConfigPath: "./tracker.yaml",
 	}
 	s.config = &Config{}
-	s.config.LoadConf(s.ServerConfigPath)
+	if err := s.config.LoadConf(s.ServerConfigPath); err != nil {
+		logrus.Error(err)
+	}
 
 	s.tracker = NewTrackerProxy(s.config)
 
@@ -36,7 +38,6 @@ func NewTrackerServiceImpl() *TrackerServiceImpl {
 		Addr:    s.config.GetPort(),
 		Handler: s.newRouter(),
 	}
-
 	s.RegisterOnShutdown(s.tracker.OnExit)
 
 	return s

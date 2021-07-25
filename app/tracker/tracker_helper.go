@@ -35,10 +35,13 @@ func NewTrackerProxy(config *Config) *Tracker {
 	// 启动一个协程自动同步文件
 	go func() {
 		for {
-			time.Sleep(5 * time.Second)
+			// 挺影响性能的
+			time.Sleep(10 * time.Second)
 			t.fileLock.Lock()
 			t.cliLock.Lock()
-			t.SyncToFile(TrackerFile)
+			if err := t.SyncToFile(TrackerFile); err != nil {
+				logrus.Error(err)
+			}
 			t.cliLock.Unlock()
 			t.fileLock.Unlock()
 		}
@@ -49,7 +52,9 @@ func NewTrackerProxy(config *Config) *Tracker {
 func (t *Tracker) OnExit() {
 	t.cliLock.Lock()
 	t.fileLock.Lock() // 不释放, 一直持有到进程结束
-	t.SyncToFile(TrackerFile)
+	if err := t.SyncToFile(TrackerFile); err != nil {
+		logrus.Error(err)
+	}
 }
 
 // SyncToFile 保存到本地

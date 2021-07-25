@@ -79,11 +79,10 @@ func (c *StorageCli) Delete(hash string) error {
 
 // getURL 因为restful，所以url是公用的
 func (c *StorageCli) getURL(hash string) (string, error) {
-	reqURL, err := url.ParseRequestURI(fmt.Sprintf("http://%s/blk", c.Target))
+	reqURL, err := url.ParseRequestURI(fmt.Sprintf("http://%s/blk?hash=%s", c.Target, hash))
 	if err != nil {
 		logrus.Error(err)
 		return "", err
 	}
-	reqURL.Query().Add("hash", hash)
 	return reqURL.String(), nil
 }
