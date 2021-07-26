@@ -29,9 +29,9 @@ type Storage interface {
 }
 
 type localFileStorage struct {
-	Table     Table        `json:"table"`
+	Table     Table        `json:"table"` // 保存hash=>块在硬盘上的存储位置
 	Config    *Config      `json:"-"`
-	BitMap    utils.BitMap `json:"bitmap"`
+	BitMap    utils.BitMap `json:"bitmap"` // 保存哪些物理块是可用的
 	TableLock sync.Mutex   `json:"-"`
 }
 

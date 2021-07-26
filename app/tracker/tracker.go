@@ -22,9 +22,9 @@ const (
 )
 
 type Tracker struct {
-	CliTable  map[string][]*StorageCli    `json:"cli_table,omitempty"`  // hash=>client
-	FileTable map[string]*DistFileLocator `json:"file_table,omitempty"` // filename->fileReader
-	CliList   []*StorageCli               `json:"-"`
+	CliTable  map[string][]*StorageCli    `json:"cli_table,omitempty"`  // hash=>存储块的storage
+	FileTable map[string]*DistFileLocator `json:"file_table,omitempty"` // filename->hash列表
+	CliList   []*StorageCli               `json:"-"`                    // 存储可用的storage列表
 	cliLock   sync.Mutex                  `json:"-"`
 	fileLock  sync.Mutex                  `json:"-"`
 	config    *Config                     `json:"-"`
