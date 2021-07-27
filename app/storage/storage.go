@@ -46,6 +46,7 @@ func (l *localFileStorage) SyncToFile(path string) error {
 	if err != nil {
 		return err
 	}
+	defer f.Close()
 	// 这里需要复制一份防止出现同时读写的情况
 	data, err := json.Marshal(l)
 	if err != nil {

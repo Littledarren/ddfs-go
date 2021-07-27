@@ -63,11 +63,13 @@ func (t *Tracker) SyncToFile(p string) error {
 	if err != nil {
 		return err
 	}
+	defer f.Close()
 	data, err := json.Marshal(t)
 	if err != nil {
 		return err
 	}
 	_, err = f.Write(data)
+
 	return err
 }
 func (t *Tracker) LoadFromFile(path string) error {
